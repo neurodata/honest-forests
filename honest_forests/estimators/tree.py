@@ -245,8 +245,8 @@ class HonestTreeClassifier(DecisionTreeClassifier):
     >>> cross_val_score(clf, iris.data, iris.target, cv=10)
     ...                             # doctest: +SKIP
     ...
-    array([ 1.     ,  0.93...,  0.86...,  0.93...,  0.93...,
-            0.93...,  0.93...,  1.     ,  0.93...,  1.      ])
+    array([0.93333333, 0.93333333, 1.        , 1.        , 0.93333333,
+           0.8       , 0.8       , 0.93333333, 1.        , 1.        ])
     """
 
     def __init__(
