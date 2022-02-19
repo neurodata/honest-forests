@@ -3,7 +3,7 @@ from setuptools import setup
 VERSION = 1.0
 PACKAGE_NAME = "honest_forests"
 DESCRIPTION = "Scikit-learn compliant honest decision tree and forest implementations with additional utilities."
-with open("README", "r") as f:
+with open("README.md", "r") as f:
     LONG_DESCRIPTION = f.read()
 AUTHOR = ("Ronan Perry",)
 AUTHOR_EMAIL = "rflperry@gmail.com"
