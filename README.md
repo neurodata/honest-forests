@@ -6,7 +6,7 @@ Honest decision forests and trees implemented efficiently and scikit-learn compl
 
 Honest trees and forests use sample splitting to unbias the estimates made in leaves.
 This leads to asytmptotic convergence guarantees and empirically better calibration
-(e.g. more accurate posterior probabilities).
+(e.g. more accurate posterior probabilities, see our paper [here](https://arxiv.org/abs/1907.00325)).
 
 An example can be seen here, comparing an honest forest to the traditional random forest
 and two other ad-hoc calibration approaches.
