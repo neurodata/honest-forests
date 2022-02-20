@@ -9,6 +9,7 @@ import numpy as np
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.utils.validation import check_is_fitted
 from sklearn.utils.validation import check_X_y
+from sklearn.utils.multiclass import check_classification_targets
 
 
 class HonestTreeClassifier(DecisionTreeClassifier):
@@ -313,37 +314,84 @@ class HonestTreeClassifier(DecisionTreeClassifier):
             Fitted estimator.
         """
         X, y = check_X_y(X, y)
+
+        # Account for bootstrapping too
+        if sample_weight is None:
+            sample_weight = np.ones((X.shape[0],), dtype=np.float64)
+
+        nonzero_indices = np.where(sample_weight > 0)[0]
+
         self.structure_indices_ = np.random.choice(
-            X.shape[0],
-            int((1 - self.honest_fraction) * X.shape[0]),
+            nonzero_indices,
+            int((1 - self.honest_fraction) * len(nonzero_indices)),
             replace=False,
-        )  # No bootstrapping
-        self.honest_indices_ = np.setdiff1d(
-            np.arange(X.shape[0]), self.structure_indices_
         )
+        self.honest_indices_ = np.setdiff1d(nonzero_indices, self.structure_indices_)
+
+        sample_weight[self.honest_indices_] = 0
 
         # Learn structure on subsample
         super().fit(
-            X[self.structure_indices_],
-            y[self.structure_indices_],
+            X,
+            y,
             sample_weight=sample_weight,
             check_input=check_input,
         )
 
-        self.empirical_prior_ = np.bincount(y, minlength=self.n_classes_) / len(y)
+        if self.n_outputs_ > 1:
+            raise NotImplementedError(
+                "Multi-target honest trees not yet \
+                implemented"
+            )
 
-        # Normally called by super in
+        # update the number of classes, unsplit
+        # self.n_samples_, self.n_features_in_ = X.shape
+        if y.ndim == 1:
+            # reshape is necessary to preserve the data contiguity against vs
+            # [:, np.newaxis] that does not.
+            y = np.reshape(y, (-1, 1)).astype(int)
+        check_classification_targets(y)
+        y = np.copy(y)
+
+        # Normally called by super
         X = self._validate_X_predict(X, True)
         # Fit leaves using other subsample
         honest_leaves = self.tree_.apply(X[self.honest_indices_])
 
         self.tree_.value[:, :, :] = 0
-        for leaf_id, yval in zip(honest_leaves, y[self.honest_indices_]):
+        for leaf_id, yval in zip(honest_leaves, y[self.honest_indices_, 0]):
+            print(yval)
             self.tree_.value[leaf_id][0, yval] += 1
+
+        # preserve from underlying tree
+        # https://github.com/scikit-learn/scikit-learn/blob/1.0.X/sklearn/tree/_classes.py#L202
+        self._tree_classes_ = self.classes_
+        self._tree_n_classes_ = self.n_classes_
+        self.classes_ = []
+        self.n_classes_ = []
+        self.empirical_prior_ = []
+
+        y_encoded = np.zeros(y.shape, dtype=int)
+        for k in range(self.n_outputs_):
+            classes_k, y_encoded[:, k] = np.unique(y[:, k], return_inverse=True)
+            self.classes_.append(classes_k)
+            self.n_classes_.append(classes_k.shape[0])
+            self.empirical_prior_.append(
+                np.bincount(y_encoded[:, k], minlength=classes_k.shape[0]) / y.shape[0]
+            )
+        y = y_encoded
+
+        self.n_classes_ = np.array(self.n_classes_, dtype=np.intp)
+
+        if self.n_outputs_ == 1:
+            self.n_classes_ = self.n_classes_[0]
+            self.classes_ = self.classes_[0]
+            self.empirical_prior_ = self.empirical_prior_[0]
 
         return self
 
     def _empty_leaf_correction(self, proba, normalizer):
+        """Leaves with empty posteriors are assigned values"""
         zero_mask = proba.sum(axis=1) == 0.0
         if self.honest_prior == "empirical":
             proba[zero_mask] = self.empirical_prior_
@@ -355,6 +403,15 @@ class HonestTreeClassifier(DecisionTreeClassifier):
             raise ValueError(f"honest_prior {self.honest_prior} not a valid input.")
 
         return proba
+
+    def _impute_missing_classes(self, proba):
+        """Due to splitting, provide proba outputs for some classes"""
+        new_proba = np.zeros((proba.shape[0], self.n_classes_))
+        for i, old_class in enumerate(self._tree_classes_):
+            j = np.where(self.classes_ == old_class)[0][0]
+            new_proba[:, j] = proba[:, i]
+
+        return new_proba
 
     def predict_proba(self, X, check_input=True):
         """Predict class probabilities of the input samples X.
@@ -385,23 +442,30 @@ class HonestTreeClassifier(DecisionTreeClassifier):
         proba = self.tree_.predict(X)
 
         if self.n_outputs_ == 1:
-            proba = proba[:, : self.n_classes_]
+            proba = proba[:, : self._tree_n_classes_]
             normalizer = proba.sum(axis=1)[:, np.newaxis]
             normalizer[normalizer == 0.0] = 1.0
             proba /= normalizer
+            if self._tree_n_classes_ != self.n_classes_:
+                proba = self._impute_missing_classes(proba)
             proba = self._empty_leaf_correction(proba, normalizer)
 
             return proba
 
         else:
-            all_proba = []
+            raise NotImplementedError(
+                "Multi-target honest trees not yet \
+                implemented"
+            )
+            # all_proba = []
 
-            for k in range(self.n_outputs_):
-                proba_k = proba[:, k, : self.n_classes_[k]]
-                normalizer = proba_k.sum(axis=1)[:, np.newaxis]
-                normalizer[normalizer == 0.0] = 1.0
-                proba_k /= normalizer
-                proba_k = self._empty_leaf_correction(proba_k, normalizer)
-                all_proba.append(proba_k)
+            # for k in range(self.n_outputs_):
+            #     proba_k = proba[:, k, : self._tree_n_classes_[k]]
+            #     normalizer = proba_k.sum(axis=1)[:, np.newaxis]
+            #     normalizer[normalizer == 0.0] = 1.0
+            #     proba_k /= normalizer
+            #     proba = self._impute_missing_classes(proba)
+            #     proba_k = self._empty_leaf_correction(proba_k, normalizer)
+            #     all_proba.append(proba_k)
 
-            return all_proba
+            # return all_proba

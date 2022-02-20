@@ -1,5 +1,5 @@
 """
-Testing for the tree module (sklearn.tree).
+Testing for the tree module.
 Adopted from scikit-learn.
 https://github.com/scikit-learn/scikit-learn/blob/main/sklearn/tree/tests/test_tree.py
 """
@@ -12,11 +12,6 @@ from honest_forests import HonestTreeClassifier
 from sklearn.metrics import accuracy_score
 from sklearn import datasets
 
-CLF_CRITERIONS = ("gini", "entropy")
-
-CLF_TREES = {
-    "HonestTreeClassifier": HonestTreeClassifier,
-}
 
 # also load the iris dataset
 # and randomly permute it
@@ -27,21 +22,30 @@ iris.data = iris.data[perm]
 iris.target = iris.target[perm]
 
 
-def test_iris():
+@pytest.mark.parametrize("criterion", ['gini', 'entropy'])
+@pytest.mark.parametrize("max_features", [None, 2])
+def test_iris(criterion, max_features):
     # Check consistency on dataset iris.
-    for (name, Tree), criterion in product(CLF_TREES.items(), CLF_CRITERIONS):
-        for max_features in [None, 2]:
-            clf = Tree(criterion=criterion, random_state=0)
-            clf.fit(iris.data, iris.target)
-            score = accuracy_score(clf.predict(iris.data), iris.target)
-            assert (score > 0.5 and score < 1.0), "Failed with {0}, criterion = {1} and score = {2}".format(
-                name, criterion, score
-            )
+    clf = HonestTreeClassifier(criterion=criterion, random_state=0, max_features=max_features)
+    clf.fit(iris.data, iris.target)
+    score = accuracy_score(clf.predict(iris.data), iris.target)
+    assert (score > 0.5 and score < 1.0), "Failed with {0}, criterion = {1} and score = {2}".format(
+        "HonestTree", criterion, score
+    )
 
-            score = accuracy_score(clf.predict(iris.data), clf.predict_proba(iris.data).argmax(1))
-            assert score == 1.0, "Failed with {0}, criterion = {1} and score = {2}".format(
-                name, criterion, score
-            )
+    score = accuracy_score(clf.predict(iris.data), clf.predict_proba(iris.data).argmax(1))
+    assert score == 1.0, "Failed with {0}, criterion = {1} and score = {2}".format(
+        "HonestTree", criterion, score
+    )
+
+
+def test_toy_accuracy():
+    clf = HonestTreeClassifier()
+    X = np.ones((20, 4))
+    X[10:] *= -1
+    y = [0] * 10 + [1] * 10
+    clf = clf.fit(X, y)
+    np.testing.assert_array_equal(clf.predict(X), y)
 
 
 @pytest.mark.parametrize(
@@ -60,7 +64,6 @@ def test_impute_posteriors(honest_prior, val):
     clf = clf.fit(X, y)
 
     y_proba = clf.predict_proba(X)
-    print(y_proba)
     if np.isnan(val):
         assert len(np.where(np.isnan(y_proba[:, 0]))[0]) > 50, f"Failed with {honest_prior}"
     else:
@@ -79,3 +82,15 @@ def test_increasing_leaves():
         n_leaves.append(clf.get_n_leaves())
     
     assert np.all(np.diff(n_leaves) > 0)
+
+
+def test_impute_classes():
+    np.random.seed(0)
+    X = np.random.normal(0, 1, (101, 2))
+    y = [2]*50 + [1]*50 + [0]
+    clf = HonestTreeClassifier(honest_fraction=0.02, random_state=0)
+    clf = clf.fit(X, y)
+
+    y_proba = clf.predict_proba(X)
+
+    assert y_proba.shape[1] == 3
