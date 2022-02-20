@@ -59,7 +59,7 @@ fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 4), facecolor='white', sharey=T
 for col, label in enumerate(columns):
     ax1.plot(ns, means[:, 2*col], label=label)
 
-# ax1.legend()
+ax1.legend()
 ax1.set_xscale('log')
 ax1.set_yscale('log')
 ax1.set_title('Fit walltimes (100 trees)')
@@ -69,7 +69,6 @@ ax1.set_xlabel('Sample size')
 for col, label in enumerate(columns):
     ax2.plot(ns, means[:, col+1], label=label)
 
-ax2.legend()
 ax2.set_xscale('log')
 ax2.set_xscale('log')
 ax2.set_title('Predict walltimes (100 trees)')
