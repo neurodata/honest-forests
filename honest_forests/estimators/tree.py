@@ -360,7 +360,6 @@ class HonestTreeClassifier(DecisionTreeClassifier):
 
         self.tree_.value[:, :, :] = 0
         for leaf_id, yval in zip(honest_leaves, y[self.honest_indices_, 0]):
-            print(yval)
             self.tree_.value[leaf_id][0, yval] += 1
 
         # preserve from underlying tree
