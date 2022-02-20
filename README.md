@@ -4,6 +4,15 @@
 
 Honest decision forests and trees implemented efficiently and scikit-learn compliant.
 
+Honest trees and forests use sample splitting to unbias the estimates made in leaves.
+This leads to asytmptotic convergence guarantees and empirically better calibration
+(e.g. more accurate posterior probabilities).
+
+An example can be seen here, comparing an honest forest to the traditional random forest
+and two other ad-hoc calibration approaches.
+
+![overlapping_gaussians.pdf](examples/figures/overlaping_gaussians.pdf)
+
 ## Install from Github
 
 ```console
