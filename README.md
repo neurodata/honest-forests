@@ -11,7 +11,7 @@ This leads to asytmptotic convergence guarantees and empirically better calibrat
 An example can be seen here, comparing an honest forest to the traditional random forest
 and two other ad-hoc calibration approaches.
 
-![overlapping_gaussians.pdf](examples/figures/overlapping_gaussians.pdf)
+![overlapping_gaussians.png](examples/figures/overlapping_gaussians.png)
 
 ## Install from Github
 
