@@ -313,7 +313,8 @@ class HonestTreeClassifier(DecisionTreeClassifier):
         self : HonestTreeClassifier
             Fitted estimator.
         """
-        X, y = check_X_y(X, y)
+        if check_input:
+            X, y = check_X_y(X, y)
 
         # Account for bootstrapping too
         if sample_weight is None:
@@ -349,10 +350,9 @@ class HonestTreeClassifier(DecisionTreeClassifier):
         if y.ndim == 1:
             # reshape is necessary to preserve the data contiguity against vs
             # [:, np.newaxis] that does not.
-            y = np.reshape(y, (-1, 1)).astype(int)
+            y = np.reshape(y, (-1, 1))
         check_classification_targets(y)
-        y = np.copy(y)
-
+        y = np.copy(y).astype(int)
         # Normally called by super
         X = self._validate_X_predict(X, True)
         # Fit leaves using other subsample
@@ -386,6 +386,7 @@ class HonestTreeClassifier(DecisionTreeClassifier):
             self.n_classes_ = self.n_classes_[0]
             self.classes_ = self.classes_[0]
             self.empirical_prior_ = self.empirical_prior_[0]
+            y = y[:, 0]
 
         return self
 

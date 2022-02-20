@@ -6,6 +6,7 @@
 # License: BSD 3 clause
 
 import numpy as np
+from sklearn.utils.validation import check_X_y
 from sklearn.ensemble._forest import ForestClassifier
 from honest_forests.estimators import HonestTreeClassifier
 from sklearn.utils.validation import check_is_fitted
