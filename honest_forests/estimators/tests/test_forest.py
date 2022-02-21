@@ -115,3 +115,24 @@ def test_impute_posteriors(honest_prior, val):
         assert len(np.where(np.isnan(y_proba[:, 0]))[0]) > 50, f"Failed with {honest_prior}, prior {clf.estimators_[0].empirical_prior_}"
     else:
         assert len(np.where(y_proba[:, 0] == val)[0]) > 50, f"Failed with {honest_prior}, prior {clf.estimators_[0].empirical_prior_}"
+
+
+@pytest.mark.parametrize(
+    "honest_fraction, val",
+    [
+        (0.8, 0.5),
+        (0.02, np.nan),
+    ],
+)
+def test_honest_decision_function(honest_fraction, val):
+    np.random.seed(0)
+    X = np.random.normal(0, 1, (100, 2))
+    y = [0]*75 + [1]*25
+    clf = HonestForestClassifier(honest_fraction=honest_fraction, random_state=0, n_estimators=2)
+    clf = clf.fit(X, y)
+
+    y_proba = clf.honest_decision_function_
+    if np.isnan(val):
+        assert len(np.where(np.isnan(y_proba[:, 0]))[0]) > 50, f"Failed with {honest_fraction}"
+    else:
+        assert len(np.where(y_proba[:, 1] < val)[0]) > 50, f"Failed with {honest_fraction}"
