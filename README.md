@@ -17,7 +17,7 @@ and two other ad-hoc calibration approaches.
 
 ```console
 git clone https://github.com/neurodata/honest-forests.git
-cd honest_forests
+cd honest-forests
 pip install -e .
 ```
 
