@@ -20,6 +20,7 @@ from matplotlib import cm
 
 color_dict = {
     "HonestRF": "#F41711",
+    "Iso-HonestRF": "#ce406b",
     "RF": "#1b9e77",
     "SigRF": "#377eb8",
     "IRF": "#fdae61",
@@ -38,6 +39,18 @@ clfs = [
             n_estimators=n_estimators,
             max_features=max_features,
             n_jobs=n_jobs,
+        ),
+    ),
+    (
+        "Iso-HonestRF",
+        CalibratedClassifierCV(
+            base_estimator=HonestForestClassifier(
+                n_estimators=n_estimators // clf_cv,
+                max_features=max_features,
+                n_jobs=n_jobs,
+            ),
+            method="isotonic",
+            cv=clf_cv,
         ),
     ),
     (
@@ -168,3 +181,4 @@ ax.legend(loc="upper left")
 # ax.set_title("Posterior probabilities")
 plt.tight_layout()
 plt.savefig("./figures/overlapping_gaussians.png")
+
