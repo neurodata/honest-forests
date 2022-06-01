@@ -14,7 +14,7 @@ from sklearn.utils.multiclass import check_classification_targets
 from sklearn.utils.validation import check_is_fitted
 from joblib import Parallel, delayed
 from sklearn.ensemble._base import _partition_estimators
-from sklearn.utils.fixes import _joblib_parallel_args
+# from sklearn.utils.fixes import _joblib_parallel_args
 import threading
 
 
@@ -907,7 +907,9 @@ class HonestForestClassifier(ForestClassifier):
         Parallel(
             n_jobs=n_jobs,
             verbose=self.verbose,
-            **_joblib_parallel_args(require="sharedmem")
+            # new version of joblib no longer uses **_joblib_parallel_args
+            # **_joblib_parallel_args(require="sharedmem")
+            require="sharedmem"
         )(
             delayed(_accumulate_prediction)(tree, X, posteriors, lock, idx)
             for tree, idx in zip(self.estimators_, indices)
