@@ -445,6 +445,7 @@ class HonestForestClassifier(ForestClassifier):
         Parallel(
             n_jobs=n_jobs,
             verbose=self.verbose,
+            require="sharedmem"
         )(
             delayed(_accumulate_prediction)(tree, X, posteriors, lock, idx)
             for tree, idx in zip(self.estimators_, indices)
