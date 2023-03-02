@@ -201,7 +201,7 @@ class HonestForestClassifier(ForestClassifier):
 
     Attributes
     ----------
-    base_estimator_ : DecisionTreeClassifier
+    estimator_ : DecisionTreeClassifier
         The child estimator template used to create the collection of fitted
         sub-estimators.
 
@@ -331,7 +331,7 @@ class HonestForestClassifier(ForestClassifier):
         honest_prior="empirical",
     ):
         super().__init__(
-            base_estimator=HonestTreeClassifier(),
+            estimator=HonestTreeClassifier(),
             n_estimators=n_estimators,
             estimator_params=(
                 "honest_fraction",
