@@ -331,7 +331,7 @@ class HonestForestClassifier(ForestClassifier):
         honest_prior="empirical",
     ):
         super().__init__(
-            estimator=HonestTreeClassifier(),
+            base_estimator=HonestTreeClassifier(),
             n_estimators=n_estimators,
             estimator_params=(
                 "honest_fraction",
