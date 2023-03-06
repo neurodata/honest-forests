@@ -12,7 +12,6 @@ from honest_forests.estimators import HonestTreeClassifier
 from sklearn.utils.validation import check_is_fitted
 from joblib import Parallel, delayed
 from sklearn.ensemble._base import _partition_estimators
-from sklearn.utils.fixes import _joblib_parallel_args
 import threading
 
 
@@ -202,7 +201,7 @@ class HonestForestClassifier(ForestClassifier):
 
     Attributes
     ----------
-    base_estimator_ : DecisionTreeClassifier
+    estimator_ : DecisionTreeClassifier
         The child estimator template used to create the collection of fitted
         sub-estimators.
 
@@ -332,7 +331,7 @@ class HonestForestClassifier(ForestClassifier):
         honest_prior="empirical",
     ):
         super().__init__(
-            base_estimator=HonestTreeClassifier(),
+            estimator=HonestTreeClassifier(),
             n_estimators=n_estimators,
             estimator_params=(
                 "honest_fraction",
@@ -446,7 +445,7 @@ class HonestForestClassifier(ForestClassifier):
         Parallel(
             n_jobs=n_jobs,
             verbose=self.verbose,
-            **_joblib_parallel_args(require="sharedmem")
+            require="sharedmem"
         )(
             delayed(_accumulate_prediction)(tree, X, posteriors, lock, idx)
             for tree, idx in zip(self.estimators_, indices)
