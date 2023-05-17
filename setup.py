@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 VERSION = 1.0
 PACKAGE_NAME = "honest_forests"
@@ -19,4 +19,5 @@ setup(
     author_email=AUTHOR_EMAIL,
     install_requires=REQUIRED_PACKAGES,
     license="MIT",
+    packages=find_packages(),
 )
