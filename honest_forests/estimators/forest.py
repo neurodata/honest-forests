@@ -43,6 +43,11 @@ class HonestForestClassifier(ForestClassifier):
         "gini" for the Gini impurity and "entropy" for the information gain.
         Note: this parameter is tree-specific.
 
+    splitter : {"best", "random"}, default="best"
+        The strategy used to choose the split at each node. Supported
+        strategies are "best" to choose the best split and "random" to choose
+        the best random split.
+
     max_depth : int, default=None
         The maximum depth of the tree. If None, then nodes are expanded until
         all leaves are pure or until all leaves contain less than
@@ -312,6 +317,7 @@ class HonestForestClassifier(ForestClassifier):
         n_estimators=100,
         honest_fraction=0.5,
         criterion="gini",
+        splitter="best",
         max_depth=None,
         min_samples_split=2,
         min_samples_leaf=1,
@@ -336,6 +342,7 @@ class HonestForestClassifier(ForestClassifier):
             estimator_params=(
                 "honest_fraction",
                 "criterion",
+                "splitter",
                 "max_depth",
                 "min_samples_split",
                 "min_samples_leaf",
@@ -358,6 +365,7 @@ class HonestForestClassifier(ForestClassifier):
         )
         self.honest_fraction = honest_fraction
         self.criterion = criterion
+        self.splitter = splitter
         self.max_depth = max_depth
         self.min_samples_split = min_samples_split
         self.min_samples_leaf = min_samples_leaf
@@ -442,11 +450,7 @@ class HonestForestClassifier(ForestClassifier):
 
         if indices is None:
             indices = [None] * self.n_estimators
-        Parallel(
-            n_jobs=n_jobs,
-            verbose=self.verbose,
-            require="sharedmem"
-        )(
+        Parallel(n_jobs=n_jobs, verbose=self.verbose, require="sharedmem")(
             delayed(_accumulate_prediction)(tree, X, posteriors, lock, idx)
             for tree, idx in zip(self.estimators_, indices)
         )

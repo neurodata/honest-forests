@@ -34,27 +34,33 @@ def test_toy_accuracy():
     np.testing.assert_array_equal(clf.predict(X), y)
 
 
-@pytest.mark.parametrize("criterion", ['gini', 'entropy'])
+@pytest.mark.parametrize("criterion", ["gini", "entropy"])
 @pytest.mark.parametrize("max_features", [None, 2])
 def test_iris(criterion, max_features):
     # Check consistency on dataset iris.
-    clf = HonestForestClassifier(criterion=criterion, random_state=0, max_features=max_features, n_estimators=10)
+    clf = HonestForestClassifier(
+        criterion=criterion, random_state=0, max_features=max_features, n_estimators=10
+    )
     clf.fit(iris.data, iris.target)
     score = accuracy_score(clf.predict(iris.data), iris.target)
-    assert (score > 0.5 and score < 1.0), "Failed with {0}, criterion = {1} and score = {2}".format(
-        'HForest', criterion, score
+    assert (
+        score > 0.5 and score < 1.0
+    ), "Failed with {0}, criterion = {1} and score = {2}".format(
+        "HForest", criterion, score
     )
 
-    score = accuracy_score(clf.predict(iris.data), clf.predict_proba(iris.data).argmax(1))
+    score = accuracy_score(
+        clf.predict(iris.data), clf.predict_proba(iris.data).argmax(1)
+    )
     assert score == 1.0, "Failed with {0}, criterion = {1} and score = {2}".format(
-        'HForest', criterion, score
+        "HForest", criterion, score
     )
 
 
 def test_impute_classes():
     np.random.seed(0)
     X = np.random.normal(0, 1, (101, 2))
-    y = [0]*50 + [1]*50 + [2]
+    y = [0] * 50 + [1] * 50 + [2]
     clf = HonestForestClassifier(honest_fraction=0.02, random_state=0)
     clf = clf.fit(X, y)
 
@@ -65,9 +71,11 @@ def test_impute_classes():
 
 def test_parallel_trees():
     uf = HonestForestClassifier(
-        n_estimators=100, n_jobs=1, max_features=1.0, honest_fraction=0.5)
+        n_estimators=100, n_jobs=1, max_features=1.0, honest_fraction=0.5
+    )
     uf_parallel = HonestForestClassifier(
-        n_estimators=100, n_jobs=10, max_features=1.0, honest_fraction=0.5)
+        n_estimators=100, n_jobs=10, max_features=1.0, honest_fraction=0.5
+    )
     X = np.random.normal(0, 1, (1000, 100))
     y = [0, 1] * (len(X) // 2)
 
@@ -106,15 +114,21 @@ def test_max_samples():
 def test_impute_posteriors(honest_prior, val):
     np.random.seed(0)
     X = np.random.normal(0, 1, (100, 2))
-    y = [0]*75 + [1]*25
-    clf = HonestForestClassifier(honest_fraction=0.02, random_state=0, honest_prior=honest_prior, n_estimators=2)
+    y = [0] * 75 + [1] * 25
+    clf = HonestForestClassifier(
+        honest_fraction=0.02, random_state=0, honest_prior=honest_prior, n_estimators=2
+    )
     clf = clf.fit(X, y)
 
     y_proba = clf.predict_proba(X)
     if np.isnan(val):
-        assert len(np.where(np.isnan(y_proba[:, 0]))[0]) > 50, f"Failed with {honest_prior}, prior {clf.estimators_[0].empirical_prior_}"
+        assert (
+            len(np.where(np.isnan(y_proba[:, 0]))[0]) > 50
+        ), f"Failed with {honest_prior}, prior {clf.estimators_[0].empirical_prior_}"
     else:
-        assert len(np.where(y_proba[:, 0] == val)[0]) > 50, f"Failed with {honest_prior}, prior {clf.estimators_[0].empirical_prior_}"
+        assert (
+            len(np.where(y_proba[:, 0] == val)[0]) > 50
+        ), f"Failed with {honest_prior}, prior {clf.estimators_[0].empirical_prior_}"
 
 
 @pytest.mark.parametrize(
@@ -127,12 +141,18 @@ def test_impute_posteriors(honest_prior, val):
 def test_honest_decision_function(honest_fraction, val):
     np.random.seed(0)
     X = np.random.normal(0, 1, (100, 2))
-    y = [0]*75 + [1]*25
-    clf = HonestForestClassifier(honest_fraction=honest_fraction, random_state=0, n_estimators=2)
+    y = [0] * 75 + [1] * 25
+    clf = HonestForestClassifier(
+        honest_fraction=honest_fraction, random_state=0, n_estimators=2
+    )
     clf = clf.fit(X, y)
 
     y_proba = clf.honest_decision_function_
     if np.isnan(val):
-        assert len(np.where(np.isnan(y_proba[:, 0]))[0]) > 50, f"Failed with {honest_fraction}"
+        assert (
+            len(np.where(np.isnan(y_proba[:, 0]))[0]) > 50
+        ), f"Failed with {honest_fraction}"
     else:
-        assert len(np.where(y_proba[:, 1] < val)[0]) > 50, f"Failed with {honest_fraction}"
+        assert (
+            len(np.where(y_proba[:, 1] < val)[0]) > 50
+        ), f"Failed with {honest_fraction}"
