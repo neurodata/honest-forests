@@ -365,6 +365,7 @@ class HonestForestClassifier(ForestClassifier):
         )
         self.honest_fraction = honest_fraction
         self.criterion = criterion
+        self.splitter = splitter
         self.max_depth = max_depth
         self.min_samples_split = min_samples_split
         self.min_samples_leaf = min_samples_leaf
